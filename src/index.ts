@@ -34,7 +34,7 @@ async function submitUrlForArchiving(url: string, debug = false): Promise<string
         headers: {
             "Content-Type": "application/x-www-form-urlencoded",
             Referer: "https://web.archive.org/save/",
-            "User-Agent": "web-archive-cli/1.0 (+https://github.com/The-Best-Codes/web-archive-cli)",
+            "User-Agent": "web-archive-cli/1.0 (+https://github.com/The-Best-Codes/web-archive-cli)", // If the user agent causes issues, change it to `"CustomArchiverClient/1.0 (+https://archive.org/details/savepagenow)"`
         },
         body: postBody.toString(),
     });
@@ -158,7 +158,7 @@ async function pollJob(jobId: string, timeoutMs: number, debug = false, spinnerF
     throw new Error(`Polling for job ${jobId} timed out after ${timeoutMs / 1000} seconds.`);
 }
 
-async function archiveAndPoll(urlToArchive: string, keepProtocol: boolean, debug = false) {
+async function archiveAndPoll(urlToArchive: string, keepProtocol: boolean, debug = false, timeoutMs?: number) {
     const normalizedUrl = normalizeUrl(urlToArchive, keepProtocol);
     const s = spinner();
     s.start(`Submitting URL to archive: ${normalizedUrl}`);
@@ -172,7 +172,7 @@ async function archiveAndPoll(urlToArchive: string, keepProtocol: boolean, debug
         return;
     }
     try {
-        const status = await pollJob(jobId, POLLING_TIMEOUT_MS, debug, s);
+        const status = await pollJob(jobId, timeoutMs ?? POLLING_TIMEOUT_MS, debug, s);
         if (status.status === "success") {
             s.stop("Archiving completed!", 0);
             const archivedUrl = `/web/${status.timestamp}/${status.original_url}`;
@@ -197,10 +197,12 @@ program
     .argument("[url]", "The URL to archive (omit to enter interactive mode)")
     .option("-k, --keep-protocol", "Keep http(s):// in URL", false)
     .option("--debug", "Enable verbose debug output", false)
-    .action(async (urlArg: string | undefined, opts: { keepProtocol?: boolean, debug?: boolean }) => {
+    .option("-t, --timeout <ms>", "Polling timeout in milliseconds", (val) => parseInt(val, 10), POLLING_TIMEOUT_MS)
+    .action(async (urlArg: string | undefined, opts: { keepProtocol?: boolean, debug?: boolean, timeout?: number }) => {
         const debug = !!opts.debug;
+        const timeoutMs = opts.timeout;
         if (urlArg) {
-            await archiveAndPoll(urlArg, !!opts.keepProtocol, debug);
+            await archiveAndPoll(urlArg, !!opts.keepProtocol, debug, timeoutMs);
             return;
         }
         // Interactive mode
@@ -235,7 +237,7 @@ program
             }
             keepProtocol = protoChoice as boolean;
         }
-        await archiveAndPoll(url as string, keepProtocol, debug);
+        await archiveAndPoll(url as string, keepProtocol, debug, timeoutMs);
         outro("Done!");
     });
 
