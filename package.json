@@ -2,9 +2,10 @@
   "name": "web-archive-cli",
   "module": "src/index.ts",
   "type": "module",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Javascript CLI to archive websites and monitor archiving jobs progress",
   "bin": {
+    "web-archive-cli": "dist/index.js",
     "web-archive": "dist/index.js",
     "wa": "dist/index.js"
   },
