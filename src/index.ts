@@ -158,11 +158,18 @@ async function pollJob(jobId: string, timeoutMs: number, debug = false, spinnerF
     throw new Error(`Polling for job ${jobId} timed out after ${timeoutMs / 1000} seconds.`);
 }
 
-async function archiveAndPoll(urlToArchive: string, keepProtocol: boolean, debug = false, timeoutMs?: number, cacheBuster = false) {
+async function archiveAndPoll(urlToArchive: string, keepProtocol: boolean, debug = false, timeoutMs?: number, cacheBuster: string = "none") {
     let normalizedUrl = normalizeUrl(urlToArchive, keepProtocol);
-    if (cacheBuster) {
-        const rand = () => Math.random().toString(36).slice(2);
+    const rand = () => Math.random().toString(36).slice(2);
+    if (cacheBuster === "frag") {
         normalizedUrl += `#${rand()}=${rand()}`;
+    } else if (cacheBuster === "query") {
+        log.warn(`Warning: Query string cache-busting will only save the full URL, including the query. The base URL (${normalizedUrl}) will not be archived or searchable.`);
+        if (normalizedUrl.includes("?")) {
+            normalizedUrl += `&${rand()}=${rand()}`;
+        } else {
+            normalizedUrl += `?${rand()}=${rand()}`;
+        }
     }
     const s = spinner();
     s.start(`Submitting URL to archive: ${normalizedUrl}`);
@@ -202,11 +209,11 @@ program
     .option("-k, --keep-protocol", "Keep http(s):// in URL", false)
     .option("--debug", "Enable verbose debug output", false)
     .option("-t, --timeout <ms>", "Polling timeout in milliseconds", (val) => parseInt(val, 10), POLLING_TIMEOUT_MS)
-    .option("--cache-buster", "Append a cache-busting #<random>=<random> to the URL", false)
-    .action(async (urlArg: string | undefined, opts: { keepProtocol?: boolean, debug?: boolean, timeout?: number, cacheBuster?: boolean }) => {
+    .option("--cache-buster <type>", "Append a cache-busting value: none, 'frag' for fragment, 'query' for query string", "none")
+    .action(async (urlArg: string | undefined, opts: { keepProtocol?: boolean, debug?: boolean, timeout?: number, cacheBuster?: string }) => {
         const debug = !!opts.debug;
         const timeoutMs = opts.timeout;
-        const cacheBuster = !!opts.cacheBuster;
+        const cacheBuster = opts.cacheBuster;
         if (urlArg) {
             await archiveAndPoll(urlArg, !!opts.keepProtocol, debug, timeoutMs, cacheBuster);
             return;
