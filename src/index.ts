@@ -201,15 +201,15 @@ async function archiveAndPoll(urlToArchive: string, keepProtocol: boolean, debug
 const program = new Command();
 program
     .name("web-archive-cli")
-    .description("Archive websites using the Internet Archive Save API")
+    .description("archive websites using the Internet Archive Save API")
     .version(packageJson.version);
 
 program
-    .argument("[url]", "The URL to archive (omit to enter interactive mode)")
-    .option("-k, --keep-protocol", "Keep http(s):// in URL", false)
-    .option("--debug", "Enable verbose debug output", false)
-    .option("-t, --timeout <ms>", "Polling timeout in milliseconds", (val) => parseInt(val, 10), POLLING_TIMEOUT_MS)
-    .option("--cache-buster <type>", "Append a cache-busting value: none, 'frag' for fragment, 'query' for query string", "none")
+    .argument("[url]", "the URL to archive (omit to enter interactive mode)")
+    .option("-k, --keep-protocol", "keep http(s):// in URL", false)
+    .option("--debug", "enable verbose debug output", false)
+    .option("-t, --timeout <ms>", "polling timeout in milliseconds", (val) => parseInt(val, 10), POLLING_TIMEOUT_MS)
+    .option("--cache-buster <type>", "append a cache-busting value: none, 'frag' for fragment, 'query' for query string", "none")
     .action(async (urlArg: string | undefined, opts: { keepProtocol?: boolean, debug?: boolean, timeout?: number, cacheBuster?: string }) => {
         const debug = !!opts.debug;
         const timeoutMs = opts.timeout;

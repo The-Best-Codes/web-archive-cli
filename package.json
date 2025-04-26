@@ -2,13 +2,14 @@
   "name": "web-archive-cli",
   "module": "src/index.ts",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.9.0",
   "description": "Javascript CLI to archive websites and monitor archiving jobs progress",
   "bin": {
     "web-archive": "dist/index.js",
     "wa": "dist/index.js"
   },
   "scripts": {
+    "prepublishOnly": "bun run build",
     "build": "bun build src/index.ts --outfile dist/index.js --minify --packages external --format esm --target node",
     "start": "bun run dist/index.js"
   },
