@@ -191,7 +191,7 @@ program
             });
             if (isCancel(url)) {
                 cancel("Operation cancelled.");
-                outro("Goodbye!");
+                //outro("Goodbye!");
                 return;
             }
             if (url && typeof url === "string" && url.trim() !== "") break;
@@ -210,7 +210,7 @@ program
             });
             if (isCancel(protoChoice)) {
                 cancel("Operation cancelled.");
-                outro("Goodbye!");
+                //outro("Goodbye!");
                 return;
             }
             keepProtocol = protoChoice as boolean;
