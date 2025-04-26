@@ -158,8 +158,12 @@ async function pollJob(jobId: string, timeoutMs: number, debug = false, spinnerF
     throw new Error(`Polling for job ${jobId} timed out after ${timeoutMs / 1000} seconds.`);
 }
 
-async function archiveAndPoll(urlToArchive: string, keepProtocol: boolean, debug = false, timeoutMs?: number) {
-    const normalizedUrl = normalizeUrl(urlToArchive, keepProtocol);
+async function archiveAndPoll(urlToArchive: string, keepProtocol: boolean, debug = false, timeoutMs?: number, cacheBuster = false) {
+    let normalizedUrl = normalizeUrl(urlToArchive, keepProtocol);
+    if (cacheBuster) {
+        const rand = () => Math.random().toString(36).slice(2);
+        normalizedUrl += `#${rand()}=${rand()}`;
+    }
     const s = spinner();
     s.start(`Submitting URL to archive: ${normalizedUrl}`);
     let jobId: string;
@@ -198,11 +202,13 @@ program
     .option("-k, --keep-protocol", "Keep http(s):// in URL", false)
     .option("--debug", "Enable verbose debug output", false)
     .option("-t, --timeout <ms>", "Polling timeout in milliseconds", (val) => parseInt(val, 10), POLLING_TIMEOUT_MS)
-    .action(async (urlArg: string | undefined, opts: { keepProtocol?: boolean, debug?: boolean, timeout?: number }) => {
+    .option("--cache-buster", "Append a cache-busting #<random>=<random> to the URL", false)
+    .action(async (urlArg: string | undefined, opts: { keepProtocol?: boolean, debug?: boolean, timeout?: number, cacheBuster?: boolean }) => {
         const debug = !!opts.debug;
         const timeoutMs = opts.timeout;
+        const cacheBuster = !!opts.cacheBuster;
         if (urlArg) {
-            await archiveAndPoll(urlArg, !!opts.keepProtocol, debug, timeoutMs);
+            await archiveAndPoll(urlArg, !!opts.keepProtocol, debug, timeoutMs, cacheBuster);
             return;
         }
         // Interactive mode
@@ -237,7 +243,7 @@ program
             }
             keepProtocol = protoChoice as boolean;
         }
-        await archiveAndPoll(url as string, keepProtocol, debug, timeoutMs);
+        await archiveAndPoll(url as string, keepProtocol, debug, timeoutMs, cacheBuster);
         outro("Done!");
     });
 
