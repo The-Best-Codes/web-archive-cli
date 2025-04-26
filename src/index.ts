@@ -49,9 +49,16 @@ async function submitUrlForArchiving(url: string, debug = false): Promise<string
 
     const errorDivMatch = html.match(/<div class="col-md-4 col-md-offset-4">([\s\S]*?)<\/div>/);
     if (errorDivMatch && errorDivMatch[1]) {
-        const pMatch = errorDivMatch[1].match(/<p>([\s\S]*?)<\/p>/);
-        if (pMatch && pMatch[1]) {
-            throw new Error(`Error from Wayback Machine: ${pMatch[1].replace(/\s+/g, ' ').trim()}`);
+        const divContent = errorDivMatch[1];
+        const h2Match = divContent.match(/<h2>\s*Sorry\s*<\/h2>/i);
+        const aMatch = divContent.match(/<a\s+href=["']\/save["']\s*>\s*Return to Save Page Now\s*<\/a>/i);
+        const pMatch = divContent.match(/<p>([\s\S]*?)<\/p>/i);
+        if (h2Match && aMatch) {
+            if (pMatch && pMatch[1]) {
+                throw new Error(`Error from Wayback Machine: ${pMatch[1].replace(/\s+/g, ' ').trim()}`);
+            }
+        } else if (pMatch && pMatch[1]) {
+            log.warn(`Possible error message: ${pMatch[1].replace(/\s+/g, ' ').trim()}`);
         }
     }
     const jobMatch = html.match(/spn\.watchJob\("([^"]+)"/);
