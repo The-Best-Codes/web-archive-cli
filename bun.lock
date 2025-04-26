@@ -4,14 +4,14 @@
     "": {
       "name": "web-archive-cli",
       "dependencies": {
-        "@clack/prompts": "^0.10.1",
-        "commander": "^13.1.0",
+        "@clack/prompts": "latest",
+        "commander": "latest",
       },
       "devDependencies": {
         "@types/bun": "latest",
       },
       "peerDependencies": {
-        "typescript": "^5",
+        "typescript": "latest",
       },
     },
   },

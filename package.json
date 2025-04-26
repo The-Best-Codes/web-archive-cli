@@ -2,7 +2,7 @@
   "name": "web-archive-cli",
   "module": "src/index.ts",
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Javascript CLI to archive websites and monitor archiving jobs progress",
   "bin": {
     "web-archive": "dist/index.js",
@@ -16,10 +16,10 @@
     "dist/"
   ],
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "^1.2.10"
   },
   "peerDependencies": {
-    "typescript": "^5"
+    "typescript": "^5.8.3"
   },
   "dependencies": {
     "@clack/prompts": "^0.10.1",
