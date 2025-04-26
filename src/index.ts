@@ -46,6 +46,14 @@ async function submitUrlForArchiving(url: string, debug = false): Promise<string
         log.info("[DEBUG] HTML response from submitUrlForArchiving:");
         console.log(html);
     }
+
+    const errorDivMatch = html.match(/<div class="col-md-4 col-md-offset-4">([\s\S]*?)<\/div>/);
+    if (errorDivMatch && errorDivMatch[1]) {
+        const pMatch = errorDivMatch[1].match(/<p>([\s\S]*?)<\/p>/);
+        if (pMatch && pMatch[1]) {
+            throw new Error(`Error from Wayback Machine: ${pMatch[1].replace(/\s+/g, ' ').trim()}`);
+        }
+    }
     const jobMatch = html.match(/spn\.watchJob\("([^"]+)"/);
     if (jobMatch && jobMatch[1]) {
         return jobMatch[1];
