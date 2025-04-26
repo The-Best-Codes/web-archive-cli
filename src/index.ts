@@ -120,8 +120,8 @@ async function pollJob(jobId: string, timeoutMs: number, debug = false, spinnerF
                     progressMsg = 'Downloading resources...';
                 }
                 if (progressMsg !== lastProgressMsg) {
-                    if (typeof spinnerFn === 'function') {
-                        spinnerFn().message(progressMsg);
+                    if (spinnerFn && typeof spinnerFn.message === 'function') {
+                        spinnerFn.message(`Polling job status for: ${jobId}${progressMsg ? ` (${progressMsg})` : ''}`);
                     } else {
                         log.info(progressMsg);
                     }
