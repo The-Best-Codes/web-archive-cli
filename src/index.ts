@@ -43,7 +43,7 @@ async function submitUrlForArchiving(url: string, debug = false): Promise<string
     }
     const html = await response.text();
     if (debug) {
-        log.info("[DEBUG] HTML response from submitUrlForArchiving:");
+        console.log("[DEBUG] HTML response from submitUrlForArchiving:");
         console.log(html);
     }
 
@@ -100,14 +100,36 @@ async function getJobStatus(jobId: string): Promise<JobStatus & { retry_after?: 
     return statusWithRetry;
 }
 
-async function pollJob(jobId: string, timeoutMs: number, debug = false): Promise<JobStatus> {
+async function pollJob(jobId: string, timeoutMs: number, debug = false, spinnerFn: any): Promise<JobStatus> {
     const startTime = Date.now();
     let pollInterval = DEFAULT_POLL_INTERVAL_MS;
+    let lastProgressMsg = '';
     while (Date.now() - startTime < timeoutMs) {
         try {
             const status = await getJobStatus(jobId);
             if (debug) {
-                log.info(`[DEBUG] Polled job status: ${JSON.stringify(status)}`);
+                console.log(`[DEBUG] Polled job status: ${JSON.stringify(status)}`);
+            }
+            if (status.status === "pending") {
+                let progressMsg = '';
+                if (status.download_size && status.total_size) {
+                    progressMsg = `Downloaded ${status.download_size}/${status.total_size} resources`;
+                } else if (status.resources) {
+                    progressMsg = `Downloaded ${status.resources.length} resources so far`;
+                } else {
+                    progressMsg = 'Downloading resources...';
+                }
+                if (progressMsg !== lastProgressMsg) {
+                    if (typeof spinnerFn === 'function') {
+                        spinnerFn().message(progressMsg);
+                    } else {
+                        log.info(progressMsg);
+                    }
+                    if (debug) {
+                        console.log(`[DEBUG] Progress message: ${progressMsg}`);
+                    }
+                    lastProgressMsg = progressMsg;
+                }
             }
             if (status.status !== "pending") {
                 return status;
@@ -150,7 +172,7 @@ async function archiveAndPoll(urlToArchive: string, keepProtocol: boolean, debug
         return;
     }
     try {
-        const status = await pollJob(jobId, POLLING_TIMEOUT_MS, debug);
+        const status = await pollJob(jobId, POLLING_TIMEOUT_MS, debug, s);
         if (status.status === "success") {
             s.stop("Archiving completed!", 0);
             const archivedUrl = `/web/${status.timestamp}/${status.original_url}`;
@@ -191,7 +213,6 @@ program
             });
             if (isCancel(url)) {
                 cancel("Operation cancelled.");
-                //outro("Goodbye!");
                 return;
             }
             if (url && typeof url === "string" && url.trim() !== "") break;
@@ -210,7 +231,6 @@ program
             });
             if (isCancel(protoChoice)) {
                 cancel("Operation cancelled.");
-                //outro("Goodbye!");
                 return;
             }
             keepProtocol = protoChoice as boolean;
