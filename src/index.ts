@@ -136,7 +136,7 @@ async function getJobStatus(
     let errorBody: any = {};
     try {
       errorBody = await response.json();
-    } catch { }
+    } catch {}
     const errorStatus: JobStatus & { retry_after?: number } = {
       job_id: jobId,
       status: "error",
