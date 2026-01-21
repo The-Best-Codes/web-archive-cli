@@ -34,7 +34,7 @@ function createClackSpinner() {
       }
     },
     cancel: () => {
-      s.stop();
+      s.stopAndPersist();
     },
   };
 }
