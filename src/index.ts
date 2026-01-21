@@ -21,6 +21,17 @@ function createClackSpinner() {
     },
     color: "magenta",
   });
+
+  const handleExit = () => {
+    if (s.isSpinning) {
+      s.stopAndPersist({ symbol: "✕", text: s.text });
+    }
+    process.exit(0);
+  };
+
+  process.on("SIGINT", handleExit);
+  process.on("SIGTERM", handleExit);
+
   return {
     start: (msg: string) => s.start(msg),
     message: (msg: string) => {
