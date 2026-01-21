@@ -6,12 +6,38 @@ import {
   log,
   outro,
   select,
-  spinner,
   text,
 } from "@clack/prompts";
 import { Command } from "commander";
+import ora from "ora";
 import { URLSearchParams } from "url";
 import packageJson from "../package.json";
+
+function createClackSpinner() {
+  const s = ora({
+    spinner: {
+      interval: 80,
+      frames: ["◒", "◐", "◓", "◑"],
+    },
+    color: "magenta",
+  });
+  return {
+    start: (msg: string) => s.start(msg),
+    message: (msg: string) => {
+      s.text = msg;
+    },
+    stop: (msg: string, code: number) => {
+      if (code === 0) {
+        s.succeed(msg);
+      } else {
+        s.fail(msg);
+      }
+    },
+    cancel: () => {
+      s.stop();
+    },
+  };
+}
 
 const ARCHIVE_SAVE_URL = "https://web.archive.org/save/";
 const POLL_STATUS_BASE_URL = "https://web.archive.org/save/status/";
@@ -110,7 +136,7 @@ async function getJobStatus(
     let errorBody: any = {};
     try {
       errorBody = await response.json();
-    } catch {}
+    } catch { }
     const errorStatus: JobStatus & { retry_after?: number } = {
       job_id: jobId,
       status: "error",
@@ -214,7 +240,7 @@ async function archiveAndPoll(
       normalizedUrl += `?${rand()}=${rand()}`;
     }
   }
-  const s = spinner();
+  const s = createClackSpinner();
   s.start(`Submitting URL to archive: ${normalizedUrl}`);
   let jobId: string;
   try {
